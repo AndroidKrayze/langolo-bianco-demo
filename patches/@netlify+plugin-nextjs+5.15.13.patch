@@ -1,0 +1,32 @@
+diff --git a/node_modules/@netlify/plugin-nextjs/dist/build/content/static.js b/node_modules/@netlify/plugin-nextjs/dist/build/content/static.js
+index 19c1afd..8dd219b 100644
+--- a/node_modules/@netlify/plugin-nextjs/dist/build/content/static.js
++++ b/node_modules/@netlify/plugin-nextjs/dist/build/content/static.js
+@@ -98,23 +98,14 @@ var copyStaticExport = async (ctx) => {
+ };
+ var publishStaticDir = async (ctx) => {
+   try {
+-    await rm(ctx.tempPublishDir, { recursive: true, force: true });
+-    await mkdir(basename(ctx.tempPublishDir), { recursive: true });
+-    await rename(ctx.publishDir, ctx.tempPublishDir);
+-    await rename(ctx.staticDir, ctx.publishDir);
++    // Windows: renaming `.next` fails when files are locked (EPERM/EBUSY).
++    // Point the publish directory at the already-copied static assets instead.
++    ctx.netlifyConfig.build.publish = ctx.staticDir;
+   } catch (error) {
+     ctx.failBuild("Failed publishing static content", error instanceof Error ? { error } : {});
+   }
+ };
+-var unpublishStaticDir = async (ctx) => {
+-  try {
+-    if (existsSync(ctx.tempPublishDir)) {
+-      await rename(ctx.publishDir, ctx.staticDir);
+-      await rename(ctx.tempPublishDir, ctx.publishDir);
+-    }
+-  } catch {
+-  }
+-};
++var unpublishStaticDir = async () => {};
+ export {
+   copyStaticAssets,
+   copyStaticContent,
